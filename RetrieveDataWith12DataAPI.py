@@ -43,25 +43,23 @@ def GetStockMarketSerie():
     )
 
     # reading the data from the API answer
-    cours_list = list()
-    date_list = list()
+    cours_dict = dict()
     for week in ts.as_json():
 
         # average compuatation based on the stock share price at the beginning and at the end of each week
         average_cours = ( float(week.get("open",0)) + float(week.get("close",0)) )/2 
-        cours_list.append(average_cours)
 
         # we retreive the date of the beginning of the week
-        date_list.append ( date.fromisoformat(week.get("datetime",0)) )
+        date_cours = ( date.fromisoformat(week.get("datetime",0)) )
+
+        # filling the dict
+        cours_dict[date_cours] = average_cours
         
 
-    counter = len(cours_list)
+    counter = len(cours_dict)
     print(f'number of data retreived : { counter }' )
 
-    for elmt in date_list:
-        print(elmt)
-
-    return (date_list,cours_list)
+    return (cours_dict)
 
 
 
@@ -82,19 +80,19 @@ def GetBNPAList():
     ).as_json()
 
     # reading the data from the API answer
-    BNPA_list = list()
-    date_list = list()
+    BNPA_dict = dict()
     for elmt in stat:
-        BNPA_list.append( float( elmt.get('eps_actual',0) ) )
-        date_list.append( date.fromisoformat(elmt.get('date')))
+        # read data from the request answer
+        BNPA = ( float( elmt.get('eps_actual',0) ) )
+        date_BNPA = ( date.fromisoformat(elmt.get('date')))
 
-    counter = len(BNPA_list)
+        # filling the dict with data
+        BNPA_dict[date_BNPA] = BNPA
+
+    counter = len(BNPA)
     print(f'number of data retreived : { counter }' )
 
-    for elmt in date_list:
-        print(elmt)
-
-    return (date_list, BNPA_list)
+    return (BNPA_dict)
 
 
 #####################################################################################################################################
@@ -113,23 +111,21 @@ def GetDividendList():
         end_date = END_DATE
     ).as_json()['dividends']
 
-    print("dividendes")
-    print(dividends)
 
     # reading the data from the API answer
-    dividend_list = list()
-    date_list = list()
+    dividend_dict = dict()
     for elmt in dividends:
-        dividend_list.append( float( elmt.get('amount',0) ) )
-        date_list.append( date.fromisoformat(elmt.get('payment_date')))
+        # read data from the request answer
+        dividend = ( float( elmt.get('amount',0) ) )
+        date_dividend = ( date.fromisoformat(elmt.get('payment_date')))
 
-    counter = len(dividend_list)
+        # filling the dict with data
+        dividend_dict[date_dividend] = dividend
+
+    counter = len(dividend_dict)
     print(f'number of data retreived : { counter }' )
 
-    for elmt in date_list:
-        print(elmt)
-
-    return (date_list, dividend_list)
+    return (dividend_dict)
 
 
 #####################################################################################################################################
@@ -158,17 +154,17 @@ def PlotBNPA(date_list, cours_list):
     ax.set_title(SYMBOL)
     plt.show()
 
-def PlotShareAndDividend(Share_date_list, Share_list, Dividend_date_list, Dividend_list):
+def PlotShareAndDividend(Share_dict,Dividend_dict):
     fig, ax = plt.subplots(2,1)
     fig.suptitle(SYMBOL)
 
     ax[0].set_title('Share price')
-    ax[0].plot(Share_date_list,Share_list)
+    ax[0].plot([key for (key,value) in Share_dict.items()], [value for (key,value) in Share_dict.items()])
     ax[0].set_xlabel('time')
     ax[0].set_ylabel('share price ($)')
     
     ax[1].set_title('Dividend')
-    ax[1].stem(Dividend_date_list,Dividend_list)
+    ax[1].stem([key for (key,value) in Dividend_dict.items()],[value for (key,value) in Dividend_dict.items()])
     ax[1].set_xlabel('time')
     ax[1].set_ylabel('dividend ($)')
     
@@ -178,9 +174,9 @@ def PlotShareAndDividend(Share_date_list, Share_list, Dividend_date_list, Divide
 
 
 def main():
-    (Share_date_list, Share_list) = GetStockMarketSerie()
-    (Dividend_date_list, Dividend_list) = GetDividendList()
-    PlotShareAndDividend(Share_date_list,Share_list,Dividend_date_list,Dividend_list)
+    (Share_dict) = GetStockMarketSerie()
+    (Dividend_dict) = GetDividendList()
+    PlotShareAndDividend(Share_dict,Dividend_dict)
 
 
     

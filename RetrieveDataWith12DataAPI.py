@@ -6,7 +6,7 @@
 ### informations to acces with url request
 # BASE_URL = 'https://api.twelvedata.com'
 # ENDPOINT_SERIE = '/time_series'
-# MY_API_KEY='a6a5b36967244bf286de09d7fa99cde8'
+# MY_API_KEY='YOUR_API_KEY'
 
 from twelvedata import TDClient                  # librairie for communicating easily with 12Data API
 from datetime import date                       # ro read date in iso format

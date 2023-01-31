@@ -9,7 +9,7 @@
 # MY_API_KEY='a6a5b36967244bf286de09d7fa99cde8'
 
 from twelvedata import TDClient                  # librairie for communicating easily with 12Data API
-from datetime import date                        # ro read date in iso format
+from datetime import date, datetime                       # ro read date in iso format
 import matplotlib.pyplot as plt
 
 ### request parameters
@@ -97,6 +97,49 @@ def GetBNPAList():
     return (date_list, BNPA_list)
 
 
+#####################################################################################################################################
+# This function returns 2 lists : 
+#       - the dividend list
+#       - the date list corresponding to the date associated with each dividend element
+#####################################################################################################################################
+def GetDividendList():
+
+    # Initialize client - apikey parameter is requiered
+    td = TDClient(apikey = MY_API_KEY)
+    
+    dividends = td.get_dividends(
+        symbol = SYMBOL,
+        start_date = START_DATE,
+        end_date = END_DATE
+    ).as_json()['dividends']
+
+    print("dividendes")
+    print(dividends)
+
+    # reading the data from the API answer
+    dividend_list = list()
+    date_list = list()
+    for elmt in dividends:
+        dividend_list.append( float( elmt.get('amount',0) ) )
+        date_list.append( date.fromisoformat(elmt.get('payment_date')))
+
+    counter = len(dividend_list)
+    print(f'number of data retreived : { counter }' )
+
+    for elmt in date_list:
+        print(elmt)
+
+    return (date_list, dividend_list)
+
+
+#####################################################################################################################################
+# This function modifies the sampling rate of (Share_date_list, Share_list) so that the sampling rate is the same of
+# (BNPA_date_list, BNPA_list)'s. 
+# (Share_date_list, Share_list) has a higher sample rate frequency that (BNPA_date_list, BNPA_list)
+#####################################################################################################################################
+# def Undersampling(Share_date_list, Share_list, BNPA_date_list, BNPA_list):
+    # to complete
+
 
 
 def PlotStockMarketSerie(date_list, cours_list):     
@@ -115,14 +158,30 @@ def PlotBNPA(date_list, cours_list):
     ax.set_title(SYMBOL)
     plt.show()
 
+def PlotShareAndDividend(Share_date_list, Share_list, Dividend_date_list, Dividend_list):
+    fig, ax = plt.subplots(2,1)
+    fig.suptitle(SYMBOL)
+
+    ax[0].set_title('Share price')
+    ax[0].plot(Share_date_list,Share_list)
+    ax[0].set_xlabel('time')
+    ax[0].set_ylabel('share price ($)')
+    
+    ax[1].set_title('Dividend')
+    ax[1].stem(Dividend_date_list,Dividend_list)
+    ax[1].set_xlabel('time')
+    ax[1].set_ylabel('dividend ($)')
+    
+
+    plt.show()
+
 
 
 def main():
-    (date_list, cours_list) = GetStockMarketSerie()
-    PlotStockMarketSerie(date_list, cours_list)
+    (Share_date_list, Share_list) = GetStockMarketSerie()
+    (Dividend_date_list, Dividend_list) = GetDividendList()
+    PlotShareAndDividend(Share_date_list,Share_list,Dividend_date_list,Dividend_list)
 
-    (date_list,BNPA_list) = GetBNPAList()                               # Benefice Net Per Action (Earning Per Share)
-    PlotBNPA(date_list,BNPA_list)
 
     
 
